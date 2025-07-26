@@ -7,6 +7,7 @@ import { Routes, Route } from 'react-router-dom';
 // import Home from './HomePage/index.tsx';
 import OAuthCallback from './OauthCallback/index.tsx';
 import LandingPage from './Components/LandingPage.tsx';
+import Dashboard from './Components/Dashboard.tsx';
 
 import Navbar from './Components/navbar.tsx';
 
@@ -15,6 +16,9 @@ function App() {
     <Routes>
       {/* Landing page route - uses its own full-screen layout */}
       <Route path="/" element={<LandingPage />} />
+      
+      {/* Dashboard route - uses its own full-screen layout */}
+      <Route path="/dashboard" element={<Dashboard />} />
       
       {/* Other routes - use the original layout with navbar and footer */}
       <Route path="/*" element={
