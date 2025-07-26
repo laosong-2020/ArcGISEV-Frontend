@@ -9,7 +9,7 @@ const LandingPage: React.FC = () => {
   return (
     <Layout style={{ 
       minHeight: '100vh', 
-      background: '#0F091A'
+      background: 'linear-gradient(180deg, #0F091A 0%, #1a1a2e 50%, #16213e 100%)'
     }}>
       {/* Header */}
       <Header style={{
