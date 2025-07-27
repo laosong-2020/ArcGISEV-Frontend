@@ -4,30 +4,26 @@ import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 
 // import Flow from './FlowPage/index.tsx';
-import Home from './HomePage/index.tsx';
+// import Home from './HomePage/index.tsx';
 import OAuthCallback from './OauthCallback/index.tsx';
+import LandingPage from './Components/LandingPage.tsx';
+import DashboardSkeleton from './DashboardPage/index.tsx';
 
-import Navbar from './Components/navbar.tsx';
+import Flow from './FlowPage/index.tsx';
 
 function App() {
   return (
-    <div className="h-screen flex flex-col items-center justify-center bg-base-300 gap-y-4">
-      <Navbar />
-      <main className="w-full min-h-0 flex-1 mx-auto px-8 flex flex-col items-center justify-center">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          {/* <Route path="/flow" element={<Flow />} /> */}
-          <Route path="/oauthCallback" element={<OAuthCallback />} />
-          {/* Add more routes here */}
-        </Routes>
-      </main>
-      <footer className="text-center py-4 text-sm text-gray-500">
-        © 2024 ArcGIS EV Config Visualizer. All rights reserved.
-      </footer>
-    </div>
+    <Routes>
+      {/* Landing page route - uses its own full-screen layout */}
+      <Route path="/" element={<LandingPage />} />
+      
+      {/* Dashboard route - uses its own full-screen layout */}
+      <Route path="/oauthCallback" element={<OAuthCallback />} />
+      <Route path="/dashboard" element={<DashboardSkeleton />} />
+      {/* Flow Route */}
+      <Route path="/flow" element={<Flow />} />
+    </Routes>
   )
 }
-
-
 
 export default App

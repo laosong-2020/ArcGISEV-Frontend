@@ -44,7 +44,7 @@ export default function OAuthCallback() {
         localStorage.setItem('expiresAt', data.expiresAt)
         // 4. clear state and redirect to home
         sessionStorage.removeItem('oauth_state')
-        navigate('/')
+        navigate('/dashboard')
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
         console.error('OAuth callback error:', err)
