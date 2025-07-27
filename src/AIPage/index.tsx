@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { marked } from 'marked';
 import './styles.css';
+import { useNavigate } from 'react-router-dom';
 
 interface Message {
   content: string;
@@ -173,7 +174,7 @@ const MessageComponent: React.FC<{ message: Message }> = ({ message }) => {
         <div className="user-bubble max-w-2xl p-4 rounded-2xl rounded-tr-md ml-auto text-white">
           {message.content}
         </div>
-        <div className="w-10 h-10 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 flex items-center justify-center flex-shrink-0">
+        <div className="w-10 h-10 rounded-full bg-[#834efe] hover:bg-[#6b3edc] flex items-center justify-center flex-shrink-0">
           <i className="fas fa-user text-white text-sm"></i>
         </div>
       </div>
@@ -182,7 +183,7 @@ const MessageComponent: React.FC<{ message: Message }> = ({ message }) => {
 
   return (
     <div className="chat-message flex items-start space-x-4">
-      <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+      <div className="w-10 h-10 rounded-full bg-[#834efe] hover:bg-[#6b3edc] flex items-center justify-center flex-shrink-0">
         <i className="fas fa-robot text-white text-sm"></i>
       </div>
       <div className="bot-bubble max-w-2xl p-4 rounded-2xl rounded-tl-md">
@@ -199,11 +200,11 @@ const MessageComponent: React.FC<{ message: Message }> = ({ message }) => {
               <span>Cached Response</span>
             </div>
             <div className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full">
-              <span>{message.data.cache_type} cache</span>
+              <span>{message.data.cache_type ? message.data.cache_type.charAt(0).toUpperCase() + message.data.cache_type.slice(1) : 'Unknown'} Cache</span>
             </div>
             {message.data.similarity_score && (
               <div className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full">
-                <span>{(message.data.similarity_score * 100).toFixed(1)}% similar</span>
+                <span>{(message.data.similarity_score * 100).toFixed(1)}% Similar</span>
               </div>
             )}
           </div>
@@ -254,6 +255,7 @@ const AIPage: React.FC = () => {
 
   const chatMessagesRef = useRef<HTMLDivElement>(null);
   const scrollTimeoutRef = useRef<number>();
+  const navigate = useNavigate();
 
   const isAtBottom = useCallback(() => {
     if (!chatMessagesRef.current) return true;
@@ -379,35 +381,52 @@ const AIPage: React.FC = () => {
   }, [messages]);
 
   return (
-    <div className="min-h-screen ai-page-bg overflow-hidden">
+    <div className="min-h-screen bg-[#0F091A] overflow-hidden">
       {/* Floating Particles Background */}
       <FloatingParticles />
 
-      <div className="chat-container container mx-auto p-6 h-screen flex flex-col max-w-5xl">
-        {/* Elegant Header */}
-        <div className="glass-card glass-header rounded-2xl mb-6 overflow-hidden">
-          <div className="p-6">
-            <div className="flex items-center justify-center space-x-4">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center avatar-glow">
-                <i className="fas fa-robot text-white text-xl"></i>
-              </div>
-              <div className="text-center">
-                <h1 className="text-3xl font-bold brand-gradient mb-1">
-                  ArcGIS Enterprise RAG Assistant
-                </h1>
-                <p className="text-white/70 text-sm font-medium">
-                  Powered by Advanced Vector Search & Large Language Models
-                </p>
-              </div>
-              <div className="px-3 py-1 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full text-white text-xs font-semibold">
-                ✨ AI Powered
-              </div>
-            </div>
-          </div>
+      <div className="text-white/50 chat-container container mx-auto p-6 h-screen flex flex-col max-w-5xl">
+        {/* Back to Dashboard Button */}
+        <div className="text-left mb-4">
+          <button
+            onClick={() => navigate('/dashboard')}
+            className="text-white/50 hover:text-white/80 text-xs font-medium transition-colors duration-200 flex items-center space-x-2"
+          >
+            <i className="fas fa-arrow-left"></i>
+            <span>Back to Dashboard</span>
+          </button>
         </div>
 
+        {/* Elegant Header */}
+        <div className="glass-card glass-header rounded-2xl mb-6 overflow-hidden">
+  <div className="p-6">
+    <div className="flex items-center justify-center space-x-6">
+      {/* Bigger Logo with padding on the left */}
+      <div className="w-16 h-16  rounded-full bg-[#6b3edc] hover:bg-[#6b3edc] flex items-center justify-center avatar-glow">
+        <img src="/logos/Logo SVG.svg" alt="Logo" className="h-20 w-auto object-contain p-1" />
+      </div>
+
+      {/* Title and subtitle */}
+      <div className="text-center pl-10 pr-10">
+        <h1 className="text-3xl font-bold text-white mb-1">
+          ArcGIS Enterprise RAG Assistant
+        </h1>
+        <p className="text-white/50 text-sm font-medium">
+          Powered by Advanced Vector Search & Large Language Models
+        </p>
+      </div>
+
+      {/* AI Pill with slight left offset */}
+      <div className="px-3 py-1 pr-2 bg-[#834efe] hover:bg-[#6b3edc] rounded-full text-white text-xs font-semibold">
+        ✨ AI Powered
+      </div>
+    </div>
+  </div>
+</div>
+
+
         {/* Chat Messages Container */}
-        <div className="glass-card rounded-2xl flex-1 mb-6 overflow-hidden relative">
+        <div className="glass-card text-white/50 rounded-2xl flex-1 mb-6 overflow-hidden relative">
           <div className="h-full flex flex-col">
             <div 
               className="flex-1 overflow-y-auto p-6 space-y-6 scroll-fade" 
@@ -452,19 +471,19 @@ const AIPage: React.FC = () => {
               disabled={isLoading}
             />
             <button 
-              className={`send-btn ${isLoading ? 'opacity-60 cursor-not-allowed' : ''}`}
+              className={`send-btn bg-[#834efe] hover:bg-[#6b3edc] ${isLoading ? 'opacity-60 cursor-not-allowed' : ''}`}
               onClick={sendMessage}
               disabled={isLoading}
             >
               {isLoading ? (
                 <>
                   <i className="fas fa-circle-notch fa-spin"></i>
-                  <span>Processing</span>
+                  <span className="text-white">Processing</span>
                 </>
               ) : (
                 <>
                   <i className="fas fa-paper-plane"></i>
-                  <span>Send</span>
+                  <span className="text-white">Send</span>
                 </>
               )}
             </button>
