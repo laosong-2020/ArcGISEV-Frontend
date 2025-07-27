@@ -81,6 +81,16 @@ const DashboardSkeleton: React.FC = () => {
               <img src="/logos/Logo Text SVG.svg" alt="Logo" className="h-16 w-auto object-contain" />
             </div>
           </div>
+          <nav className="hidden md:flex space-x-4">
+
+            <button
+              onClick={() => navigate('/ai')}
+              className="btn bg-[#834efe] hover:bg-[#6b3edc] flex items-center space-x-2"
+            >
+              <i className="fas fa-robot" />
+              <span>AI Assistant</span>
+            </button>
+          </nav>
           {isLoggedIn ? (
             <button
               className="bg-[#834efe] hover:bg-[#6b3edc] text-white p-2 rounded-full transition transform hover:scale-105"
