@@ -18,6 +18,7 @@ interface BackendEdge {
   source: string;
   target: string;
   status: string;
+  messages?: string[];
 }
 
 interface BackendTopology {
@@ -98,12 +99,16 @@ export async function fetchTopology(): Promise<{
     // make it a solid line when warning
     animated: true,
     style: {
-      stroke: isWarning ? 'orange' : undefined,
+      stroke: isWarning ? '#fcd421' : undefined,
       strokeWidth: isWarning ? 2 : undefined,
       strokeDasharray: isWarning ? '0' : undefined,
     },
     label: ie?.label,
     type: ie?.type,
+    data: {
+      status: be.status,
+      messages: be.messages || [],
+    }
   };
 });
 
