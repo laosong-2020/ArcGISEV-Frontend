@@ -41,24 +41,17 @@ const LandingPage: React.FC = () => {
               <img src="/logos/Logo Text SVG.svg" alt="Logo" className="h-16 w-auto object-contain" />
             </div>
           </div>
-          <nav className="hidden md:flex space-x-12">
-            {['welcome', 'features', 'how-it-works'].map((sec) => (
-              <button
-                key={sec}
-                onClick={() => scrollToSection(sec)}
-                className="text-white hover:text-purple-400 transition-colors duration-200"
-              >
-                {sec === 'welcome' ? 'Welcome' : sec === 'features' ? 'Features' : 'How It Works'}
-              </button>
-            ))}
+          <nav className="hidden md:flex space-x-4">
+
             <button
               onClick={() => navigate('/ai')}
-              className="text-white hover:text-purple-400 transition-colors duration-200 flex items-center space-x-2"
+              className="btn bg-[#834efe] hover:bg-[#6b3edc] flex items-center space-x-2"
             >
-              <i className="fas fa-robot"></i>
+              <i className="fas fa-robot" />
               <span>AI Assistant</span>
             </button>
           </nav>
+
           {/* right: login or user icon */}
           {isLoggedIn ? (
             <button
