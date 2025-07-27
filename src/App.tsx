@@ -8,6 +8,7 @@ import { Routes, Route } from 'react-router-dom';
 import OAuthCallback from './OauthCallback/index.tsx';
 import LandingPage from './Components/LandingPage.tsx';
 import DashboardSkeleton from './DashboardPage/index.tsx';
+import AIPage from './AIPage/index.tsx';
 
 import Flow from './FlowPage/index.tsx';
 
@@ -22,6 +23,8 @@ function App() {
       <Route path="/dashboard" element={<DashboardSkeleton />} />
       {/* Flow Route */}
       <Route path="/flow" element={<Flow />} />
+      {/* AI Chatbot Route */}
+      <Route path="/ai" element={<AIPage />} />
     </Routes>
   )
 }

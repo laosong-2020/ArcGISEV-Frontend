@@ -51,6 +51,13 @@ const LandingPage: React.FC = () => {
                 {sec === 'welcome' ? 'Welcome' : sec === 'features' ? 'Features' : 'How It Works'}
               </button>
             ))}
+            <button
+              onClick={() => navigate('/ai')}
+              className="text-white hover:text-purple-400 transition-colors duration-200 flex items-center space-x-2"
+            >
+              <i className="fas fa-robot"></i>
+              <span>AI Assistant</span>
+            </button>
           </nav>
           {/* right: login or user icon */}
           {isLoggedIn ? (
