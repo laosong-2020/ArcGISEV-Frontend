@@ -200,11 +200,11 @@ const MessageComponent: React.FC<{ message: Message }> = ({ message }) => {
               <span>Cached Response</span>
             </div>
             <div className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full">
-              <span>{message.data.cache_type ? message.data.cache_type.charAt(0).toUpperCase() + message.data.cache_type.slice(1) : 'Unknown'} Cache</span>
+              <span>{message.data?.cache_type ? message.data.cache_type.charAt(0).toUpperCase() + message.data?.cache_type.slice(1) : 'Unknown'} Cache</span>
             </div>
-            {message.data.similarity_score && (
+            {message.data?.similarity_score && (
               <div className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full">
-                <span>{(message.data.similarity_score * 100).toFixed(1)}% Similar</span>
+                <span>{(message.data?.similarity_score * 100).toFixed(1)}% Similar</span>
               </div>
             )}
           </div>
@@ -225,7 +225,7 @@ const MessageComponent: React.FC<{ message: Message }> = ({ message }) => {
             </div>
             {showReasoning && (
               <div className="mt-3 text-sm opacity-80 leading-relaxed">
-                {message.data.reasoning}
+                {message.data?.reasoning}
               </div>
             )}
           </div>
@@ -236,6 +236,32 @@ const MessageComponent: React.FC<{ message: Message }> = ({ message }) => {
           dangerouslySetInnerHTML={{ __html: marked.parse(message.content) }}
         />
       </div>
+    </div>
+  );
+};
+
+// Progress Timer Component
+const ProgressTimer: React.FC<{ startTime: number }> = ({ startTime }) => {
+  const [elapsed, setElapsed] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setElapsed(Math.floor((Date.now() - startTime) / 1000));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [startTime]);
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+  };
+
+  return (
+    <div className="text-center text-white/40 text-xs mt-2 font-medium">
+      <i className="fas fa-clock mr-1"></i>
+      Processing for {formatTime(elapsed)} • AI is working hard on your query
     </div>
   );
 };
@@ -252,6 +278,8 @@ const AIPage: React.FC = () => {
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
   const [isUserScrolling, setIsUserScrolling] = useState(false);
   const [showScrollIndicator, setShowScrollIndicator] = useState(false);
+  const [abortController, setAbortController] = useState<AbortController | null>(null);
+  const [requestStartTime, setRequestStartTime] = useState<number | null>(null);
 
   const chatMessagesRef = useRef<HTMLDivElement>(null);
   const scrollTimeoutRef = useRef<number>();
@@ -294,6 +322,11 @@ const AIPage: React.FC = () => {
     setMessages(prev => [...prev, newUserMessage]);
     setInputValue('');
     setIsLoading(true);
+    
+    // Create abort controller for this request
+    const controller = new AbortController();
+    setAbortController(controller);
+    setRequestStartTime(Date.now());
 
     let data = null;
     try {
@@ -301,16 +334,25 @@ const AIPage: React.FC = () => {
       const apiUrl = `${import.meta.env.VITE_AI_HOST}/query`;
       console.log('AI API URL:', apiUrl);
       
+      // Set a 2-minute timeout (120 seconds) - longer than backend timeout
+      const timeoutId = setTimeout(() => {
+        controller.abort();
+      }, 120000);
+      
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
-        // Remove credentials for AI service - it likely doesn't need auth
-        // credentials: 'include',
-        body: JSON.stringify({ question: message })
+        body: JSON.stringify({ question: message }),
+        signal: controller.signal // Add abort signal
       });
+
+      // Clear timeout if request completes successfully
+      clearTimeout(timeoutId);
+
+      console.log('AI API Response:', response);
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -341,11 +383,19 @@ const AIPage: React.FC = () => {
       }
       
     } catch (error) {
-      const errorMsg = (error as Error).message;
+      const errorObj = error as Error;
+      const errorMsg = errorObj.message;
       let friendlyMessage = `Failed to get response: ${errorMsg}`;
       
-      // Provide helpful error messages for common issues
-      if (errorMsg.includes('CORS')) {
+      // Handle specific error types
+      if (errorObj.name === 'AbortError') {
+        const duration = requestStartTime ? Math.round((Date.now() - requestStartTime) / 1000) : 0;
+        friendlyMessage = `⏱️ **Request Timeout**: The AI service took longer than expected (${duration}s) and was cancelled.`;
+        friendlyMessage += '\n\n💡 **Solutions**:\n• Try a shorter, more specific question\n• Check if the AI service is under heavy load\n• The service might be processing a complex query';
+      } else if (errorMsg.includes('Read timed out') || errorMsg.includes('timeout')) {
+        friendlyMessage = `⏱️ **Backend Timeout**: The AI service timed out after 60 seconds.`;
+        friendlyMessage += '\n\n💡 **This suggests**:\n• Your question is very complex and requires extensive processing\n• The AI model is under heavy load\n• Try breaking your question into smaller parts';
+      } else if (errorMsg.includes('CORS')) {
         friendlyMessage += '\n\n💡 **CORS Issue**: The AI server needs to be configured to allow requests from this domain.';
       } else if (errorMsg.includes('Failed to fetch') || errorMsg.includes('network')) {
         friendlyMessage += '\n\n💡 **Connection Issue**: Make sure the AI server is running and accessible.';
@@ -363,9 +413,27 @@ const AIPage: React.FC = () => {
       if (!data?.cache_hit) {
         setIsLoading(false);
       }
+      setAbortController(null);
+      setRequestStartTime(null);
     }
 
     scrollToBottom(true);
+  };
+
+  const cancelRequest = () => {
+    if (abortController) {
+      abortController.abort();
+      setIsLoading(false);
+      setAbortController(null);
+      setRequestStartTime(null);
+      
+      const cancelMessage: Message = {
+        content: "🚫 **Request Cancelled**: The AI request was cancelled by user.",
+        isUser: false,
+        data: { cache_hit: false }
+      };
+      setMessages(prev => [...prev, cancelMessage]);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -470,23 +538,34 @@ const AIPage: React.FC = () => {
               onKeyPress={handleKeyPress}
               disabled={isLoading}
             />
-            <button 
-              className={`send-btn bg-[#834efe] hover:bg-[#6b3edc] ${isLoading ? 'opacity-60 cursor-not-allowed' : ''}`}
-              onClick={sendMessage}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
+            {isLoading ? (
+              <div className="flex space-x-2">
+                <button 
+                  className="send-btn bg-red-500 hover:bg-red-600"
+                  onClick={cancelRequest}
+                  title="Cancel request"
+                >
+                  <i className="fas fa-times"></i>
+                  <span className="text-white">Cancel</span>
+                </button>
+                <button 
+                  className="send-btn bg-[#834efe] opacity-60 cursor-not-allowed"
+                  disabled
+                >
                   <i className="fas fa-circle-notch fa-spin"></i>
                   <span className="text-white">Processing</span>
-                </>
-              ) : (
-                <>
-                  <i className="fas fa-paper-plane"></i>
-                  <span className="text-white">Send</span>
-                </>
-              )}
-            </button>
+                </button>
+              </div>
+            ) : (
+              <button 
+                className="send-btn bg-[#834efe] hover:bg-[#6b3edc]"
+                onClick={sendMessage}
+                disabled={isLoading}
+              >
+                <i className="fas fa-paper-plane"></i>
+                <span className="text-white">Send</span>
+              </button>
+            )}
           </div>
         </div>
         
@@ -494,6 +573,11 @@ const AIPage: React.FC = () => {
           <i className="fas fa-database mr-1"></i>
           Local RAG Model • 10,000+ ESRI Docs Embedded • ArcGIS Enterprise Specialist
         </div>
+        
+        {/* Progress Timer */}
+        {isLoading && requestStartTime && (
+          <ProgressTimer startTime={requestStartTime} />
+        )}
       </div>
     </div>
   );
