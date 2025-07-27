@@ -1,3 +1,5 @@
+import daisyui from "daisyui";
+
 export default {
   content: [
       "./index.html",
@@ -8,8 +10,15 @@ export default {
         fontFamily: {
           'inter': ['Inter', 'sans-serif'],
         },
+        colors: {
+          purple: {
+            500: '#834efe',
+            600: '#6b3edc',
+            700: '#5a2bb9',
+          }
+        }
       },
   },
-  plugins: [],
+  plugins: [daisyui],
   important: true,
 }
